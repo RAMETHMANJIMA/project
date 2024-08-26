@@ -20,9 +20,10 @@ namespace ConsoleAppClinicManagementSystem
             IClinicRepository clinicRepository = new ClinicRepositoryImpl(connectionString);
             IClinicService clinicalService = new ClinicServiceImpl(clinicRepository, clinicRepository);
 
-            Console.WriteLine("-------------------------");
-            Console.WriteLine("         L O G I N       ");
-            Console.WriteLine("-------------------------");
+            Console.WriteLine("---------------------------------------------------------------------------------------------------------------------");
+            Console.WriteLine("                                           FMC CLINIC                                                                  ");
+            Console.WriteLine("                                           L O G I N                                                                   ");
+            Console.WriteLine("---------------------------------------------------------------------------------------------------------------------");
 
             string userName;
             do
@@ -42,7 +43,7 @@ namespace ConsoleAppClinicManagementSystem
 
             if (staffId > 0)
             {
-                Console.WriteLine($"Login successful. StaffId: {staffId}, RoleId: {roleId}");
+                Console.WriteLine($"Login successful.");
                 switch (roleId)
                 {
                     case 1:
@@ -67,7 +68,9 @@ namespace ConsoleAppClinicManagementSystem
 
         private static async Task GoToReceptionistDashboardAsync(IClinicService clinicalService)
         {
-            Console.WriteLine("\n--- Receptionist Dashboard ---");
+            Console.WriteLine("-----------------------");
+            Console.WriteLine("\nWELCOME RECEPTIONIST");
+            Console.WriteLine("-----------------------");
             while (true)
             {
                 Console.WriteLine("1. Add Patient");
@@ -132,7 +135,7 @@ namespace ConsoleAppClinicManagementSystem
 
         private static async Task SearchByphoneAsync(IClinicService clinicalService)
         {
-            Console.WriteLine("Enter Phone Number to search for the patient:");
+            Console.WriteLine("Enter Phone Number of patient:");
             string phoneNumber = Console.ReadLine();
 
             Patient patient = await clinicalService.SearchPatientByPhoneNumberAsync(phoneNumber);
@@ -158,7 +161,7 @@ namespace ConsoleAppClinicManagementSystem
 
         private static async Task SearchByIdIdAsync(IClinicService clinicalService)
         {
-            Console.Write("Enter Patient ID to search: ");
+            Console.Write("Enter Patient ID : ");
             int patientId = Convert.ToInt32(Console.ReadLine());
 
             Patient patient = await clinicalService.SearchPatientByIdAsync(patientId);
@@ -183,7 +186,7 @@ namespace ConsoleAppClinicManagementSystem
 
         private static async Task UpdatePatientAsync(IClinicService clinicalService)
         {
-            Console.Write("Enter the Patient ID to update: ");
+            Console.Write("Enter the Patient ID : ");
             int patientId = int.Parse(Console.ReadLine());
 
             Console.Write("Enter the updated Phone Number: ");
@@ -229,12 +232,13 @@ namespace ConsoleAppClinicManagementSystem
         }
         private static async Task GoToDoctorDashboardAsync(IClinicService clinicalService)
         {
-            Console.WriteLine("\n--- Doctor Dashboard ---");
+            Console.WriteLine("-----------------");
+            Console.WriteLine("\n WELCOME DOCTOR");
+            Console.WriteLine("-----------------");
             while (true)
             {
                 Console.WriteLine("1. View Appointment");
-                Console.WriteLine("2. Prescribe Medication");
-
+                Console.WriteLine("2. Prescribe Medicine");
                 Console.WriteLine("3. Prescribe Test");
                 Console.WriteLine("4. Exit");
                 Console.Write("Enter Your Choice: ");
@@ -307,31 +311,81 @@ namespace ConsoleAppClinicManagementSystem
         {
             var patient = new Patient();
 
-            Console.Write("Enter the name of the patient: ");
-            patient.PatientName = Console.ReadLine();
-
-            DateTime dob;
-            do
+            // Name validation
+            while (true)
             {
-                Console.Write("Enter the DOB of the patient (yyyy-mm-dd): ");
-            } while (!DateTime.TryParse(Console.ReadLine(), out dob));
-            patient.DOB = dob;
+                Console.Write("Enter the name of the patient: ");
+                patient.PatientName = Console.ReadLine();
+                if (string.IsNullOrWhiteSpace(patient.PatientName) || !patient.PatientName.All(char.IsLetter))
+                {
+                    Console.WriteLine("Invalid name. Please enter a name containing only letters.");
+                }
+                else
+                {
+                    break;
+                }
+            }
 
-            Console.Write("Enter your Phone Number: ");
-            patient.PhoneNumber = Console.ReadLine();
+            // Date of Birth validation
+            DateTime dob;
+            while (true)
+            {
+                Console.Write("Enter the Date of Birth of the patient (yyyy-mm-dd): ");
+                if (DateTime.TryParse(Console.ReadLine(), out dob) && dob <= DateTime.Today)
+                {
+                    patient.DOB = dob;
+                    break;
+                }
+                else
+                {
+                    Console.WriteLine("Invalid Date of Birth. Please enter a valid date in the format yyyy-mm-dd and ensure it is not a future date.");
+                }
+            }
 
-            Console.Write("Enter your Gender: ");
-            patient.Gender = Console.ReadLine();
+            // Phone Number validation
+            while (true)
+            {
+                Console.Write("Enter patient Phone Number: ");
+                patient.PhoneNumber = Console.ReadLine();
+                if (patient.PhoneNumber.Length == 10 && patient.PhoneNumber.All(char.IsDigit) &&
+                    (patient.PhoneNumber.StartsWith("6") || patient.PhoneNumber.StartsWith("7") ||
+                     patient.PhoneNumber.StartsWith("8") || patient.PhoneNumber.StartsWith("9")))
+                {
+                    break;
+                }
+                else
+                {
+                    Console.WriteLine("Invalid phone number. Please enter a 10-digit phone number starting with 6, 7, 8, or 9.");
+                }
+            }
 
-            Console.Write("Enter your Address: ");
+            // Gender validation
+            while (true)
+            {
+                Console.Write("Enter patient Gender (M/F): ");
+                patient.Gender = Console.ReadLine().ToUpper();
+                if (patient.Gender == "M" || patient.Gender == "F")
+                {
+                    break;
+                }
+                else
+                {
+                    Console.WriteLine("Invalid gender. Please enter 'M' for Male or 'F' for Female.");
+                }
+            }
+
+            // Address and Blood Group ( no specific validations required)
+            Console.Write("Enter patient Address: ");
             patient.Address = Console.ReadLine();
 
-            Console.Write("Enter your Blood Group: ");
+            Console.Write("Enter patient Blood Group: ");
             patient.Bloodgroup = Console.ReadLine();
 
+            // Adding patient to the service
             await clinicalService.AddPatientAsync(patient);
             Console.WriteLine("Patient Added Successfully");
         }
+
 
         private static async Task BookAppointmentAsync(IClinicService clinicalService)
         {
